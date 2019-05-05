@@ -9,12 +9,14 @@ import javax.persistence.metamodel.StaticMetamodel;
 @StaticMetamodel(LogbookEntry.class)
 public abstract class LogbookEntry_ {
 
+	public static volatile SingularAttribute<LogbookEntry, Task> task;
 	public static volatile SingularAttribute<LogbookEntry, String> activity;
 	public static volatile SingularAttribute<LogbookEntry, LocalDateTime> startTime;
 	public static volatile SingularAttribute<LogbookEntry, Long> id;
 	public static volatile SingularAttribute<LogbookEntry, LocalDateTime> endTime;
 	public static volatile SingularAttribute<LogbookEntry, Employee> employee;
 
+	public static final String TASK = "task";
 	public static final String ACTIVITY = "activity";
 	public static final String START_TIME = "startTime";
 	public static final String ID = "id";

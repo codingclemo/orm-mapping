@@ -5,6 +5,7 @@ import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 public class LogbookEntry {
@@ -18,16 +19,17 @@ public class LogbookEntry {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
-
     @ManyToOne(
             cascade = {CascadeType.PERSIST, CascadeType.MERGE},
             fetch = FetchType.EAGER, optional = false)
     @Fetch(FetchMode.SELECT) // VERSION2: Fetchmodes
     private Employee employee;
 
-    public LogbookEntry() {
+    @OneToOne( cascade = CascadeType.ALL)
+    @JoinColumn(name = "TASK_ID")
+    private Task task;
 
-    }
+    public LogbookEntry() {}
 
     public LogbookEntry(String activity, LocalDateTime startTime, LocalDateTime endTime) {
         super();
@@ -95,6 +97,14 @@ public class LogbookEntry {
         this.employee = null;
     }
 
+    public Task getTask() {
+        return task;
+    }
+
+    public void setTask(Task task) {
+        this.task = task;
+    }
+
     @Override
     public String toString() {
         return "LogbookEntry{" +
@@ -102,6 +112,7 @@ public class LogbookEntry {
                 ", activity='" + activity + '\'' +
                 ", startTime=" + startTime +
                 ", endTime=" + endTime +
+                ", employee=" + employee +
                 '}';
     }
 }

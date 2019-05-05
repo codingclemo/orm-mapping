@@ -9,12 +9,16 @@ import javax.persistence.metamodel.StaticMetamodel;
 @StaticMetamodel(Project.class)
 public abstract class Project_ {
 
+	public static volatile SingularAttribute<Project, Backlog> backlog;
 	public static volatile SetAttribute<Project, Employee> members;
 	public static volatile SingularAttribute<Project, String> name;
+	public static volatile SetAttribute<Project, Sprint> sprints;
 	public static volatile SingularAttribute<Project, Long> id;
 
+	public static final String BACKLOG = "backlog";
 	public static final String MEMBERS = "members";
 	public static final String NAME = "name";
+	public static final String SPRINTS = "sprints";
 	public static final String ID = "id";
 
 }
