@@ -91,17 +91,10 @@ public class ProjectDAO extends BaseDAO {
         try {
             EntityManager em = JpaUtil.getTransactedEntityManager();
 
-            //NativeQuery<Employee> qry = (NativeQuery) em.createNativeQuery(
             TypedQuery<Employee> qry = em.createQuery(
-              "from Employee e where e.id.project = :id ", //inner join project_employee pe on pe.employee_id = e.id where pe.project_id = :id",
+                    "SELECT e FROM Employee e JOIN e.projects p WHERE p.id = :id",
                     Employee.class);
             qry.setParameter("id", project.getId());
-/*
-            TypedQuery<Employee> qry = em.createQuery(
-                    "from Employee where project = :project", //
-                    Employee.class);
-            qry.setParameter("project", project);
-*/
             qry.getResultList().forEach(entry -> System.out.println( entry ));
             JpaUtil.commit();
         } catch (Exception e){

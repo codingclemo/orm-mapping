@@ -39,15 +39,16 @@ public class TaskDAO extends BaseDAO {
         return s;
     }
 
-    public static Collection<Task> getFinishedTasks() {
+    public static Collection<Task> getTasks() {
         final Set<Task> collection = new HashSet<>();
         try {
             EntityManager em = JpaUtil.getTransactedEntityManager();
 
             TypedQuery<Task> qry = em.createQuery(
-                    "from Task t where t.status = :status ",
+                    //"from Task t where t.status = :status ",
+                    "from Task t",
                     Task.class);
-            qry.setParameter("status", Task.Status.done);
+            //qry.setParameter("status", Task.Status.done);
             qry.getResultList().forEach(entry -> collection.add(entry));
             JpaUtil.commit();
         } catch (Exception e){

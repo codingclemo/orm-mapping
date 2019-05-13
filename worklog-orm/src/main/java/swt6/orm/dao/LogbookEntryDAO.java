@@ -6,6 +6,8 @@ import swt6.util.JpaUtil;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class LogbookEntryDAO extends BaseDAO {
 
@@ -69,6 +71,21 @@ public class LogbookEntryDAO extends BaseDAO {
     }
 
     public static Collection<LogbookEntry> getEntriesFromTask(Task task) {
-        return null;
+        Set<LogbookEntry> entries = new HashSet<>();
+        try {
+            EntityManager em = JpaUtil.getTransactedEntityManager();
+            TypedQuery<LogbookEntry> qry = em.createQuery(
+                    "from LogbookEntry where task = :task ",
+                    LogbookEntry.class);
+            qry.setParameter("task", task);
+
+            entries.addAll(qry.getResultList());
+
+            JpaUtil.commit();
+        } catch (Exception e){
+            JpaUtil.rollback();
+            throw e;
+        }
+        return  entries;
     }
 }

@@ -286,24 +286,20 @@ public class WorkLogManager {
 			empl1 = assignProjectsToEmployee(empl1, p1, p2);
 			empl2 = assignProjectsToEmployee(empl2, p2);
 
-
-			Statistics.printAverageTaskDuration();
-
-
-			Statistics.printEstimationDurationRation();
-			Statistics.printAverageCompletedStoriesPerSprint();
-			Statistics.printIncompleteTasksForSprint();
-
-/* NOT WORKING
 			ProjectDAO.listMembersOfProject(p1);
 			ProjectDAO.listMembersOfProject(p2);
 
+			/* NOT WORKING
 			EmployeeDAO.listProjects(empl1);
 			EmployeeDAO.listProjects(empl2);
 			*/
 
-/*
+			Statistics.printAverageTaskDuration();
+			Statistics.printEstimationDurationRation();
+			Statistics.printAverageCompletedStoriesPerSprint();
+			Statistics.printIncompleteTasksForSprint();
 
+/*
 			System.out.println("----- listLogbookEntriesOfEmployee -----");
 			listEntriesOfEmployee(empl1);
 

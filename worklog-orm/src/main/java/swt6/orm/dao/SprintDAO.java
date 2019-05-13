@@ -7,6 +7,9 @@ import swt6.util.JpaUtil;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class SprintDAO extends BaseDAO {
 
@@ -64,5 +67,22 @@ public class SprintDAO extends BaseDAO {
             JpaUtil.rollback();
             throw e;
         }
+    }
+
+    public static Collection<Sprint> getSprints() {
+        Set<Sprint> sprints = new HashSet<>();
+        try {
+            EntityManager em = JpaUtil.getTransactedEntityManager();
+            TypedQuery<Sprint> qry = em.createQuery(
+                    "from Sprint",
+                    Sprint.class);
+            sprints.addAll(qry.getResultList());
+
+            JpaUtil.commit();
+        } catch (Exception e){
+            JpaUtil.rollback();
+            throw e;
+        }
+        return  sprints;
     }
 }
