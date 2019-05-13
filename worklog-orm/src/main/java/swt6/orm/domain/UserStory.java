@@ -5,6 +5,8 @@ import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class UserStory implements Serializable {
@@ -29,6 +31,15 @@ public class UserStory implements Serializable {
     )
     @Fetch(FetchMode.SELECT)
     private Sprint sprint;
+
+    @OneToMany(
+            mappedBy = "userStory",
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            fetch = FetchType.EAGER,
+            orphanRemoval = true
+    )
+    @Fetch(FetchMode.SELECT)
+    private Set<Task> tasks = new HashSet<>();
 
     public UserStory() {}
 
@@ -82,6 +93,14 @@ public class UserStory implements Serializable {
         this.sprint = sprint;
     }
 
+    public Set<Task> getTasks() {
+        return tasks;
+    }
+
+    public void setTasks(Set<Task> tasks) {
+        this.tasks = tasks;
+    }
+
     @Override
     public String toString() {
         return "UserStory{" +
@@ -92,5 +111,13 @@ public class UserStory implements Serializable {
                 ", backlog=" + backlog +
                 ", sprint=" + sprint +
                 '}';
+    }
+
+    public void addTask(Task task) {
+        if (tasks == null) {
+            throw new IllegalArgumentException("sprints is null");
+        }
+        task.attachUserStory(this);
+        this.tasks.add(task);
     }
 }

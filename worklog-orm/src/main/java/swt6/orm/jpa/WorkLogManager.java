@@ -1,23 +1,27 @@
 package swt6.orm.jpa;
 
 import javax.persistence.*;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Root;
 
 
+import swt6.orm.dao.*;
 import swt6.orm.domain.*;
+import swt6.orm.stats.Statistics;
 import swt6.util.JpaUtil;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public class WorkLogManager {
+import static swt6.orm.dao.EmployeeDAO.*;
+import static swt6.orm.dao.LogbookEntryDAO.addTaskToLogbookEntry;
+import static swt6.orm.dao.LogbookEntryDAO.printTaskOfLogbookEntry;
+import static swt6.orm.dao.ProjectDAO.*;
+import static swt6.orm.dao.SprintDAO.assignUserStoryToSprint;
+import static swt6.orm.dao.SprintDAO.listUserStoriesOfSprint;
 
+public class WorkLogManager {
+/*
 	@SuppressWarnings("unused")
 	private static void insertEmployee1(Employee empl) {
 		//Worklog Persistance Unit
@@ -56,158 +60,6 @@ public class WorkLogManager {
 			throw e;
 		}
 	}
-
-	private static <T> void insertEntity(T entity) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-			em.persist(entity);
-			JpaUtil.commit();
-
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-	}
-
-	private static <T> T saveEntity(T entity) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-			entity = em.merge(entity);
-			JpaUtil.commit();
-
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-		return entity;
-	}
-
-	private static void listEmployees() {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-			List<Employee> emplList = em.createQuery("select e from Employee e", Employee.class).getResultList();
-			emplList.forEach(e-> {
-				System.out.println(e);
-			});
-		}catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-	}
-
-	private static Employee addLogbookEntries(Employee empl, LogbookEntry... entries) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-			for (LogbookEntry entry : entries) {
-				//Version 1: unidirectional
-				//empl.getLogbookEntries().add( entry );
-				//Version 2: bidirectional
-				empl.addLogbookEntry( entry );
-			}
-			empl = em.merge(empl);
-			JpaUtil.commit();
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-		return empl;
-	}
-
-	private static Employee assignProjectsToEmployee(Employee empl,
-													 Project... projects) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-			empl = em.merge(empl);
-			for (	Project project : projects) {
-				empl.addProjects(project);
-				em.merge(project);
-				// Version 2: project.addMember(empl)
-			}
-			JpaUtil.commit();
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-		return empl;
-	}
-
-	private static void listEntriesOfEmployee(Employee empl1) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-			// VERSION 1:
-			/*
-			TypedQuery<LogbookEntry> qry = em.createQuery(
-					"from LogbookEntry where employee.id = " + empl1.getId(),
-					LogbookEntry.class);
-			*/
-			//VERSION 2:
-			/*
-			TypedQuery<LogbookEntry> qry = em.createQuery(
-					"from LogbookEntry where employee.id = :emplId ",
-					LogbookEntry.class);
-			qry.setParameter("emplId", empl1.getId());
-			*/
-			// VERSION 3:
-			//VERSION 2:
-			TypedQuery<LogbookEntry> qry = em.createQuery(
-					"from LogbookEntry where employee = :empl ",
-					LogbookEntry.class);
-			qry.setParameter("empl", empl1);
-
-			qry.getResultList().forEach(entry -> System.out.println( entry ));
-
-			JpaUtil.commit();
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-	}
-
-
-	private static void loadEmployeesWithEntries() {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-			// VERSION 1:
-			TypedQuery<Employee> qry = em.createQuery(
-					"select distinct e from Employee  e join fetch e.logbookEntries",
-					Employee.class
-			);
-			qry.getResultList().forEach( System.out::println );
-
-			JpaUtil.commit();
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-	}
-
-
-	private static void listEntriesOfEmployeeCQ(Employee empl1) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-			// VERSION 1:
-			CriteriaBuilder cb = em.getCriteriaBuilder();
-			CriteriaQuery<LogbookEntry> entryCQ = cb.createQuery( LogbookEntry.class);
-			Root<LogbookEntry> entry = entryCQ.from(LogbookEntry.class);
-			ParameterExpression<Employee> p = cb.parameter( Employee.class);
-
-			// Query DB using DSL
-			entryCQ.where( cb.equal(entry.get("employee"), p)).select( entry );
-			//Typed Query with meta classes
-			entryCQ.where( cb.equal(entry.get(LogbookEntry_.employee), p)).select( entry );
-
-
-			TypedQuery<LogbookEntry> entryQry = em.createQuery( entryCQ );
-			entryQry.setParameter( p, empl1 );
-			entryQry.getResultList().forEach( System.out::println );
-
-			JpaUtil.commit();
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-	}
-
 
 	private static void testFetchingStrategies() {
 
@@ -285,38 +137,12 @@ public class WorkLogManager {
 		System.out.println("############################################");
 
 	}
-
-
-
+*/
 	public static void main(String[] args) {
 		try {
 
 			System.out.println("----- create schema -----");
 			JpaUtil.getEntityManagerFactory();
-
-			//Employee empl1 = new Employee("Franz", "Mayr", LocalDate.of(1980, 12, 24));
-			//Employee empl2 = new Employee("Bill", "Gates", LocalDate.of(1970, 1, 21));
-
-			//-- insertEmployee1(empl1);
-			//-- insertEmployee1(empl2);
-
-			//-- insertEmployee(empl1);
-			//-- insertEmployee(empl2);
-
-			//--insertEntity(empl1);
-			//--insertEntity(empl2);
-
-			/*
-			saveEntity(empl1);
-			saveEntity(empl2);
-
-			System.out.println(empl1);
-			System.out.println(empl2);
-			*/
-						/*
-			empl1.setAddress( new Address("77777", "Redmond", "Clinton Street"));
-			empl2.setAddress( new Address("666", "Hagenberg", "Gates of hell"));
-			*/
 
 			PermanentEmployee pe = new PermanentEmployee("Franz", "Mayr", LocalDate.of(1980, 12, 24));
 			pe.setAddress(new Address("4232", "Hagenberg", "Hauptstraße 1"));
@@ -331,9 +157,15 @@ public class WorkLogManager {
 			te.setEndDate(LocalDate.of(2018, 3, 1));
 			Employee empl2 = te;
 
+			TemporaryEmployee te1 = new TemporaryEmployee("Schmill", "Fates", LocalDate.of(1970, 1, 21));
+			te1.setAddress(new Address("77777", "Redmond", "Clinton Street"));
+			te1.setHourlyRate(50.0);
+			te1.setRenter("Nitrosoft");
+			te1.setStartDate(LocalDate.of(2018, 1, 1));
+			te1.setEndDate(LocalDate.of(2018, 3, 1));
+			Employee empl3 = te1;
 
 			/* LogbookEntries */
-
 			LogbookEntry entry1 = new LogbookEntry("Analyse", LocalDateTime.of(2018, 2, 1, 10, 15),
 					LocalDateTime.of(2018, 2, 1, 15, 30));
 			LogbookEntry entry2 = new LogbookEntry("Implementierung", LocalDateTime.of(2018, 2, 1, 8, 45),
@@ -341,52 +173,139 @@ public class WorkLogManager {
 			LogbookEntry entry3 = new LogbookEntry("Testen", LocalDateTime.of(2018, 2, 1, 12, 30),
 					LocalDateTime.of(2018, 2, 1, 17, 0));
 
-
-
 			System.out.println("------ insert entity -------");
-			insertEntity(empl1);
+			empl1 = EmployeeDAO.updateEmployee(empl1);
 
 			System.out.println("------ save entity -------");
-			saveEntity(empl2);
+			empl2 = EmployeeDAO.updateEmployee(empl2);
+
+			System.out.println("------ save entity -------");
+			empl3 = EmployeeDAO.updateEmployee(empl3);
 
 			System.out.println("------ list employees -------");
-			listEmployees();
+            EmployeeDAO.listEmployees();
 
 			System.out.println("----- addLogbookEntries -----");
 			empl1 = addLogbookEntries(empl1, entry1, entry2);
 			empl2 = addLogbookEntries(empl2, entry3);
 
 
+			//employee get logbookentry add addTaskToLogbookEntry()
+			Task task1 = new Task("tasktitle1", "taskdesc1", 10000, Task.Status.open);
+
+
+			empl2.getLogbookEntries().forEach( entry -> {
+				if (entry.getActivity().equals(entry3.getActivity())) {
+					entry = addTaskToLogbookEntry(entry, task1 );
+				}
+			});
+
+			//need to get the updated employee including the linked tasks from the dbs
+			empl2 = EmployeeDAO.find(empl2.getId());
+			EmployeeDAO.listEntriesOfEmployee(empl2);
+
+
+			//add backlog to project
+
 			Project p1 = new Project("Office");
 			Project p2 = new Project("Enterprise Server");
+			p1 = ProjectDAO.updateProject(p1);
+			p2 = ProjectDAO.updateProject(p2);
+
+			System.out.println("----- Backlog of project -----");
+			Backlog backlog1 = new Backlog("BacklogVision","BacklogDescription");
+			backlog1 = BacklogDAO.updateBacklog(backlog1);
+
+			p1 = assignBacklogToProject(p1, backlog1);
+			backlog1 = BacklogDAO.find(p1.getBacklog().getId());
+
+			listBacklogOfProject(p1);
 
 
+			//add sprint to project
+			System.out.println("----- create Sprints -----");
+			Sprint sprint1 = new Sprint(
+					LocalDateTime.of(2018, 2, 1, 10, 15),
+					LocalDateTime.of(2018, 2, 14, 10, 15));
+
+			Sprint sprint2 = new Sprint(
+					LocalDateTime.of(2019, 3, 1, 10, 15),
+					LocalDateTime.of(2019, 3, 14, 10, 15));
+
+			p1 = assignSprintsToProject(p1, sprint1, sprint2);
+
+			System.out.println("----- Sprints of project -----");
+			listSprintsOfProject(p1);
+
+			//add userstory to sprint
+			System.out.println("----- User stories -----");
+			UserStory userStory1 = new UserStory("USTitle", "USDescription", 34000);
+			UserStory userStory2 = new UserStory("USTitle2", "USDescription2", 35000);
+			UserStory userStory3 = new UserStory("USTitle3", "USDescription3", 90000);
+
+			p1 = ProjectDAO.find(p1.getId());
+			for(Sprint sprint : p1.getSprints()) {
+				if(sprint.getStartDate().equals(LocalDateTime.of(2018, 2, 1, 10, 15))) {
+					sprint1 = assignUserStoryToSprint(sprint, userStory1, userStory2);
+				}
+			}
+			sprint1 = SprintDAO.find(sprint1.getId());
+
+			System.out.println("----- User stories of a sprint -----");
+			listUserStoriesOfSprint(sprint1);
+
+			//add userstory to backlog
+			backlog1 = BacklogDAO.find(p1.getBacklog().getId());
+			backlog1 = BacklogDAO.attachUserStoryToBacklog(backlog1, userStory3);
+
+			//add task to userstory
+			Task task2 = new Task("tasktitle2", "taskdesc2", 20000, Task.Status.in_progress);
+			Issue issue1 = new Issue("issuetitle1", "issuedesc1", 10000, Task.Status.done,
+					LocalDateTime.of(2018, 2, 1, 10, 15),
+					LocalDateTime.of(2018, 2, 14, 10, 15),
+					Issue.Severity.low);
 
 
+			for ( UserStory userStory : sprint1.getUserStories()) {
+				if (userStory.getTitle().equals(userStory1.getTitle())) {
+					userStory1 = UserStoryDAO.find(userStory.getId());
+				}
+			}
+			userStory1 = UserStoryDAO.assignTaskToUserStory(userStory1, task2, issue1);
+			System.out.println("----- List UserStories of Backlog -----");
+			BacklogDAO.listUserStoriesOfBacklog(backlog1);
+
+
+			// add projects to employee
 			System.out.println("----- assignProjectsToEmployees -----");
+			empl1 = EmployeeDAO.find(empl1.getId());
+			empl2 = EmployeeDAO.find(empl2.getId());
+			p1 = ProjectDAO.find(p1.getId());
+			p2 = ProjectDAO.find(p2.getId());
+
 			empl1 = assignProjectsToEmployee(empl1, p1, p2);
 			empl2 = assignProjectsToEmployee(empl2, p2);
 
 
-			System.out.println("----- listEmployees -----");
-			listEmployees();
+			Statistics.printAverageTaskDuration();
 
+
+			Statistics.printEstimationDurationRation();
+			Statistics.printAverageCompletedStoriesPerSprint();
+			Statistics.printIncompleteTasksForSprint();
+
+/* NOT WORKING
+			ProjectDAO.listMembersOfProject(p1);
+			ProjectDAO.listMembersOfProject(p2);
+
+			EmployeeDAO.listProjects(empl1);
+			EmployeeDAO.listProjects(empl2);
+			*/
 
 /*
-			System.out.println("----- testFetchingStrategies ------");
-			testFetchingStrategies();
-*/
-
 
 			System.out.println("----- listLogbookEntriesOfEmployee -----");
 			listEntriesOfEmployee(empl1);
-
-
-			/*
-			System.out.println("----- listEmployeesResidingIn -----");
-			listEmployeesResidingIn( "4232" );
-			*/
-
 
 			System.out.println("----- loadEmployeesWithEntries -----");
 			loadEmployeesWithEntries();
@@ -409,10 +328,6 @@ public class WorkLogManager {
 			System.out.println("----- Sprints of project -----");
 			listSprintsOfProject(p1);
 
-			System.out.println("----- Backlog of project -----");
-			Backlog backlog1 = new Backlog("BacklogVision","BacklogDescription");
-			p1 = assignBacklogToProject(p1, backlog1);
-			printBacklogOfProject(p1);
 
 
 			System.out.println("----- User stories -----");
@@ -421,13 +336,6 @@ public class WorkLogManager {
 			sprint1 = assignUserStoryToSprint(sprint1, userStory1, userStory2);
 			System.out.println("----- User stories of a sprint -----");
 			listUserStoriesOfSprint(sprint1);
-
-			/*
-			//not working
-
-			backlog1 = assignUserStoryToBacklog(backlog1, userStory1, userStory2);
-			listUserStoriesOfBacklog(backlog1);
-*/
 
 			Task task1 = new Task("tasktitle", "taskdesc", 70000, Task.Status.open);
 			Task task2 = new Task("tasktitle", "taskdesc", 70000, Task.Status.open);
@@ -440,6 +348,9 @@ public class WorkLogManager {
 			empl1 = addLogbookEntries(empl1, entry1, entry2);
 			empl2 = addLogbookEntries(empl2, entry3);
 
+			TaskDAO.insertTask(task2);
+			TaskDAO.insertTask(issue1);
+
 			entry1 = addTaskToLogbookEntry(entry1, task1);
 
 			entry2 = addTaskToLogbookEntry(entry2, issue1);
@@ -447,195 +358,23 @@ public class WorkLogManager {
 			printTaskOfLogbookEntry(entry1);
 			printTaskOfLogbookEntry(entry2);
 
+			System.out.println("----- attachUserStoryToBacklog -----");
+			BacklogDAO.attachUserStoryToBacklog(backlog1, userStory1, userStory2);
+			BacklogDAO.listUserStoriesOfBacklog(backlog1);
+
+			System.out.println("----- dettachUserStoryFromBacklog -----");
+			BacklogDAO.detachUserStoryFromBacklog(backlog1, userStory1);
+			BacklogDAO.listUserStoriesOfBacklog(backlog1);
+
+
+			System.out.println("----- deleteEmployee -----");
+			EmployeeDAO.deleteEmployee(empl3);
+
+			System.out.println("----- listEmployees -----");
+			listEmployees();
+*/
 		} finally {
 			//JpaUtil.closeEntityManagerFactory();
 		}
 	}
-
-	private static LogbookEntry addTaskToLogbookEntry(LogbookEntry logbookEntry, Task task) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-
-			logbookEntry = em.merge(logbookEntry);
-			task = em.merge(task);
-			task.setLogbookEntry(logbookEntry);
-			logbookEntry.setTask(task);
-
-
-			JpaUtil.commit();
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-		return logbookEntry;
-	}
-
-	private static void printTaskOfLogbookEntry(LogbookEntry logbookEntry) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-
-			TypedQuery<Task> qry = em.createQuery(
-					"from Task where logbookEntry = :logbookEntry ",
-					Task.class);
-			qry.setParameter("logbookEntry", logbookEntry);
-
-			qry.getResultList().forEach(entry -> System.out.println( entry ));
-
-			JpaUtil.commit();
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-	}
-
-/*	private static Project assignBacklogToProject(Project project,
-												  Backlog backlog) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-
-			backlog.setProject(project);
-			backlog = em.merge(backlog);
-
-			project.setBacklog(backlog);
-			project = em.merge(project);
-
-		//	backlog = em.merge(backlog);
-			JpaUtil.commit();
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-		return project;
-	}*/
-
-	private static Backlog assignUserStoryToBacklog(Backlog backlog, UserStory... userStories) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-			for (	UserStory story : userStories) {
-				story = em.merge(story);
-				backlog.addStory(story);
-			}
-			backlog = em.merge(backlog);
-			JpaUtil.commit();
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-		return backlog;
-	}
-
-	private static void listUserStoriesOfBacklog(Backlog backlog) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-			TypedQuery<UserStory> qry = em.createQuery(
-					"from UserStory where backlog = :backlog ",
-					UserStory.class);
-			qry.setParameter("backlog", backlog);
-			qry.getResultList().forEach(entry -> System.out.println( entry ));
-			JpaUtil.commit();
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-	}
-
-	private static Sprint assignUserStoryToSprint(Sprint sprint, UserStory... userStories) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-			for (	UserStory story : userStories) {
-				story = em.merge(story);
-				sprint.addStory(story);
-			}
-			sprint = em.merge(sprint);
-			JpaUtil.commit();
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-		return sprint;
-	}
-
-	private static void listUserStoriesOfSprint(Sprint sprint) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-			TypedQuery<UserStory> qry = em.createQuery(
-					"from UserStory where sprint = :sprint ",
-					UserStory.class);
-			qry.setParameter("sprint", sprint);
-			qry.getResultList().forEach(entry -> System.out.println( entry ));
-			JpaUtil.commit();
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-	}
-
-
-	private static Project assignSprintsToProject(Project project,
-													 Sprint... sprints) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-			for (	Sprint sprint : sprints) {
-				project.addSprint(sprint);
-				//em.merge(project);
-			}
-			project = em.merge(project);
-			JpaUtil.commit();
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-		return project;
-	}
-
-	private static void listSprintsOfProject(Project project) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-			TypedQuery<Sprint> qry = em.createQuery(
-					"from Sprint where project = :project ",
-					Sprint.class);
-			qry.setParameter("project", project);
-			qry.getResultList().forEach(entry -> System.out.println( entry ));
-			JpaUtil.commit();
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-	}
-
-	private static Project assignBacklogToProject(Project project,
-												  Backlog backlog) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-			project = em.merge(project);
-			backlog = em.merge(backlog);
-			backlog.setProject(project);
-			project.setBacklog(backlog);
-			JpaUtil.commit();
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-		return project;
-	}
-
-
-	private static void printBacklogOfProject(Project project) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-
-			TypedQuery<Backlog> qry = em.createQuery(
-					"from Backlog where project = :project ",
-					Backlog.class);
-			qry.setParameter("project", project);
-
-			qry.getResultList().forEach(entry -> System.out.println( entry ));
-
-			JpaUtil.commit();
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-	}
-
 }

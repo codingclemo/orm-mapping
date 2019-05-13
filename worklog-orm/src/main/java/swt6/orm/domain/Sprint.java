@@ -28,7 +28,7 @@ public class Sprint implements Serializable {
     @OneToMany(
             mappedBy = "sprint",
             cascade = {CascadeType.PERSIST, CascadeType.MERGE},
-            fetch = FetchType.LAZY
+            fetch = FetchType.EAGER
     )
     @Fetch(FetchMode.SELECT)
     private Set<UserStory> userStories = new HashSet<>();

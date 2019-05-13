@@ -1,10 +1,13 @@
 package swt6.orm.domain;
 
+
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class Task implements Serializable {
@@ -22,12 +25,19 @@ public class Task implements Serializable {
     private Status status;
 
 
-    //private UserStory userStory;
+    @ManyToOne(
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            fetch = FetchType.LAZY)
+    @Fetch(FetchMode.SELECT)
+    private UserStory userStory;
 
-    @OneToOne( cascade = CascadeType.ALL)
-    @JoinColumn(name = "LOGBOOKENTRY_ID")
-    private LogbookEntry logbookEntry;
-
+    @OneToMany(
+            mappedBy = "task",
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            fetch = FetchType.EAGER
+    )
+    @Fetch(FetchMode.SELECT)
+    private Set<LogbookEntry> logbookEntries = new HashSet<>();
 
     public Task() {}
 
@@ -74,12 +84,42 @@ public class Task implements Serializable {
         this.status = status;
     }
 
-    public LogbookEntry getLogbookEntry() {
-        return logbookEntry;
+    public Set<LogbookEntry> getLogbookEntries() {
+        return logbookEntries;
     }
 
-    public void setLogbookEntry(LogbookEntry logbookEntry) {
-        this.logbookEntry = logbookEntry;
+    public void setLogbookEntries(Set<LogbookEntry> logbookEntries) {
+        this.logbookEntries = logbookEntries;
+    }
+
+    public UserStory getUserStory() {
+        return userStory;
+    }
+
+    public void setUserStory(UserStory userStory) {
+        this.userStory = userStory;
+    }
+
+    public void attachUserStory(UserStory userStory) {
+        if ( this.userStory != null) {
+            this.userStory.getTasks().remove( this );
+        }
+
+        //add bidirectional link
+        if ( userStory != null) {
+            userStory.getTasks().add( this );
+        }
+        this.userStory = userStory;
+    }
+
+    public void addLogbookEntry(LogbookEntry logbookEntry) {
+
+        if (logbookEntry == null) return;
+        if (logbookEntry.getTask() != null) {
+            logbookEntry.getTask().getLogbookEntries().remove( logbookEntry );
+        }
+        this.logbookEntries.add(logbookEntry);
+        logbookEntry.setTask(this);
     }
 
     @Override

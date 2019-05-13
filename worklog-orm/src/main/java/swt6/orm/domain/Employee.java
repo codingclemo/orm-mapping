@@ -42,14 +42,15 @@ public class Employee implements Serializable {
     //Version 2:
     //@Embedded
     //Version 3:
-    @OneToOne( cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne( cascade = CascadeType.ALL,
+            fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "ADDRESS_ID") // set name to join column
     private Address address;
 
     @ManyToMany(
-            cascade = CascadeType.MERGE,
+            cascade = CascadeType.ALL,
             mappedBy = "members" ,
-            fetch = FetchType.LAZY) // mappedBy könnte auch in Project stehen bc many2many
+            fetch = FetchType.EAGER)
     private Set<Project> projects = new HashSet<>();
 
 
@@ -117,8 +118,8 @@ public class Employee implements Serializable {
         if (entry.getEmployee() != null) {
             entry.getEmployee().getLogbookEntries().remove( entry );
         }
-        // set biirection link
-        this.logbookEntries.add( entry);
+        // set bidirection link
+        this.logbookEntries.add(entry);
         entry.setEmployee( this );
     }
 
@@ -142,7 +143,7 @@ public class Employee implements Serializable {
     }
 
     public void addProjects( Project project) {
-        if (projects == null) {
+        if (project == null) {
             throw new IllegalArgumentException("Project is null");
         }
         project.getMembers().add(this);

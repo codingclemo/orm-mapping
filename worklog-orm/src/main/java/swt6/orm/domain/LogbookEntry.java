@@ -4,11 +4,11 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @Entity
-public class LogbookEntry {
+public class LogbookEntry implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -25,8 +25,10 @@ public class LogbookEntry {
     @Fetch(FetchMode.SELECT) // VERSION2: Fetchmodes
     private Employee employee;
 
-    @OneToOne( cascade = CascadeType.ALL)
-    @JoinColumn(name = "TASK_ID")
+    @ManyToOne(
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            fetch = FetchType.LAZY)
+    @Fetch(FetchMode.SELECT)
     private Task task;
 
     public LogbookEntry() {}

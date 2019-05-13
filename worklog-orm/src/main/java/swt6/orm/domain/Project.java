@@ -17,7 +17,9 @@ public class Project implements Serializable {
   private Long     id;
   private String   name;
 
-  @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @ManyToMany(
+          cascade = CascadeType.ALL,
+          fetch = FetchType.EAGER)
   // Define how join table looks like
   @JoinTable( name = "PROJECT_EMPLOYEE",
           joinColumns = @JoinColumn(name = "PROJECT_ID"),

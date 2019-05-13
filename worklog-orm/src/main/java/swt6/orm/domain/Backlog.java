@@ -30,7 +30,7 @@ public class Backlog implements Serializable {
     @OneToMany(
             mappedBy = "backlog",
             cascade = {CascadeType.PERSIST, CascadeType.MERGE},
-            fetch = FetchType.LAZY
+            fetch = FetchType.EAGER
     )
     @Fetch(FetchMode.SELECT)
     private Set<UserStory> userStories = new HashSet<>();
@@ -87,6 +87,14 @@ public class Backlog implements Serializable {
         userStories.add(story);
     }
 
+    public void removeStory(UserStory story) {
+        if (userStories == null) {
+            throw new IllegalArgumentException("userStories is null");
+        }
+        story.setBacklog(null);
+        userStories.remove(story);
+    }
+
     @Override
     public String toString() {
         return "Backlog{" +
@@ -96,4 +104,6 @@ public class Backlog implements Serializable {
                 ", project=" + project +
                 '}';
     }
+
+
 }
