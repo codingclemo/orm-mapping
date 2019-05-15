@@ -20,7 +20,7 @@ public class Sprint implements Serializable {
 
     @ManyToOne(
             cascade = {CascadeType.PERSIST, CascadeType.MERGE},
-            fetch = FetchType.EAGER, optional = false
+            fetch = FetchType.EAGER
     )
     @Fetch(FetchMode.SELECT)
     private Project project;

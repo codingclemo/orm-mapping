@@ -17,8 +17,8 @@ public class SprintDAO extends BaseDAO {
         insertEntity(sprint);
     }
 
-    public static void updateSprint(Sprint sprint) {
-        saveEntity(sprint);
+    public static Sprint updateSprint(Sprint sprint) {
+        return saveEntity(sprint);
     }
 
     public static void deleteSprint(Sprint sprint) {
@@ -42,10 +42,14 @@ public class SprintDAO extends BaseDAO {
         try {
             EntityManager em = JpaUtil.getTransactedEntityManager();
             sprint = em.merge(sprint);
+
             for (	UserStory story : userStories) {
                 //story = em.merge(story);
+                story.setSprint(sprint);
                 sprint.addStory(story);
+
             }
+
             JpaUtil.commit();
         } catch (Exception e){
             JpaUtil.rollback();

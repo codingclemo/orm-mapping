@@ -21,11 +21,11 @@ public class UserStoryDAO extends BaseDAO {
             insertEntity(userStory);
         }
 
-        public static void updateSprint(UserStory userStory) {
-            saveEntity(userStory);
+        public static UserStory updateUserStory(UserStory userStory) {
+            return saveEntity(userStory);
         }
 
-        public static void deleteSprint(UserStory userStory) {
+        public static void deleteUserStory(UserStory userStory) {
             deleteEntity(userStory);
         }
 

@@ -21,12 +21,12 @@ public class LogbookEntry implements Serializable {
 
     @ManyToOne(
             cascade = {CascadeType.PERSIST, CascadeType.MERGE},
-            fetch = FetchType.EAGER, optional = false)
+            fetch = FetchType.EAGER)
     @Fetch(FetchMode.SELECT) // VERSION2: Fetchmodes
     private Employee employee;
 
     @ManyToOne(
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            cascade = {CascadeType.PERSIST},
             fetch = FetchType.LAZY)
     @Fetch(FetchMode.SELECT)
     private Task task;

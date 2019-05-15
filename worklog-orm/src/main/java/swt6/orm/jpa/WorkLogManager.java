@@ -1,146 +1,405 @@
 package swt6.orm.jpa;
 
-import javax.persistence.*;
-
 
 import swt6.orm.dao.*;
 import swt6.orm.domain.*;
-import swt6.orm.stats.Statistics;
+import swt6.stats.DataPopulator;
+import swt6.stats.Statistics;
 import swt6.util.JpaUtil;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.Set;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.Scanner;
 
 import static swt6.orm.dao.EmployeeDAO.*;
 import static swt6.orm.dao.LogbookEntryDAO.addTaskToLogbookEntry;
-import static swt6.orm.dao.LogbookEntryDAO.printTaskOfLogbookEntry;
 import static swt6.orm.dao.ProjectDAO.*;
 import static swt6.orm.dao.SprintDAO.assignUserStoryToSprint;
 import static swt6.orm.dao.SprintDAO.listUserStoriesOfSprint;
 
 public class WorkLogManager {
+
+	public static void main(String[] args) throws IOException {
+		//initialTests();
+		DataPopulator populator = new DataPopulator();
+
+		populator.generateTasks();
+		populator.generateUserStories();
+		populator.generateProjects();
+		populator.generateSprints();
+		populator.generateEmployees();
+        populator.generateLogbookEntries();
 /*
-	@SuppressWarnings("unused")
-	private static void insertEmployee1(Employee empl) {
-		//Worklog Persistance Unit
-		EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("WorklogPU");
-		EntityManager em = null;
-		EntityTransaction tx = null;
-
-		try {
-			em = emFactory.createEntityManager();
-			tx = em.getTransaction();
-			tx.begin();
-			em.persist(empl);
-			tx.commit();
-
-		} catch (Exception e){
-			if (tx != null && tx.isActive()){
-				tx.rollback();
-			}
-		}
-		finally{
-			if (em != null){
-				em.close();
-			}
-			emFactory.close();
-		}
-	}
-
-	private static void insertEmployee(Employee empl) {
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-			em.persist(empl);
-			JpaUtil.commit();
-
-		} catch (Exception e){
-			JpaUtil.rollback();
-			throw e;
-		}
-	}
-
-	private static void testFetchingStrategies() {
-
-		// prepare: fetch valid ids for employee and logbookentry
-		Long entryId = null;
-		Long emplId = null;
-
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-
-			Optional<LogbookEntry> entry =
-					em.createQuery("select le from LogbookEntry le", LogbookEntry.class)
-							.setMaxResults(1)
-							.getResultList().stream().findAny();
-			if (!entry.isPresent()) return;
-			entryId = entry.get().getId();
-
-			Optional<Employee> empl =
-					em.createQuery("select e from Employee e", Employee.class)
-							.setMaxResults(1)
-							.getResultList().stream().findAny();
-			if (!empl.isPresent()) return;
-			emplId = empl.get().getId();
-
-			JpaUtil.commit();
-		}
-		catch (Exception e) {
-			JpaUtil.rollback();
-			throw e;
-		}
-
-		System.out.println("############################################");
-
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-
-			System.out.println("###> Fetching LogbookEntry ...");
-			LogbookEntry entry = em.find(LogbookEntry.class, entryId);
-			System.out.println("###> Fetched LogbookEntry");
-			Employee empl1 = entry.getEmployee();
-			System.out.println("###> Fetched associated Employee");
-			System.out.println(empl1);
-			System.out.println("###> Accessed associated Employee");
-
-			JpaUtil.commit();
-		}
-		catch (Exception e) {
-			JpaUtil.rollback();
-			throw e;
-		}
-
-		System.out.println("############################################");
-
-		try {
-			EntityManager em = JpaUtil.getTransactedEntityManager();
-
-			System.out.println("###> Fetching Employee ...");
-			Employee empl2 = em.find(Employee.class, emplId);
-			System.out.println("###> Fetched Employee");
-			// Force Lazy Initialization exception
-			em.clear();
-			Set<LogbookEntry> entries = empl2.getLogbookEntries();
-			System.out.println("###> Fetched associated entries");
-			for (LogbookEntry e : entries)
-				System.out.println("  " + e);
-			System.out.println("###> Accessed associated entries");
-
-			JpaUtil.commit();
-		}
-		catch (Exception e) {
-			JpaUtil.rollback();
-			throw e;
-		}
-
-		System.out.println("############################################");
-
-	}
+        Statistics.printAverageCompletedStoriesPerSprint();
+        Statistics.printAverageTaskDuration();
+        Statistics.printEstimationDurationRation();
+        Statistics.printIncompleteTasksForSprint();
 */
-	public static void main(String[] args) {
-		try {
 
+		showHomeScreen();
+	}
+
+	private static void showHomeScreen() throws IOException {
+		System.out.println(
+				"******************************************\n" +
+				"WorkLogManager\n" +
+				"******************************************\n" +
+				"\n" +
+
+				"1...Statistics\n" +
+				"2...Add Entities\n"+
+				"3...Attach Entities\n"+
+				"4...Quit\n");
+
+		BufferedReader reader =
+				new BufferedReader(new InputStreamReader(System.in));
+
+		String selection = reader.readLine();
+
+		switch (selection) {
+			case "1": showStatisticsOptions(); break;
+			case "2": showEntitiesToAdd(); break;
+			case "3": showEntitiesToAttach(); break;
+			case "4": System.exit(0); break;
+			default: showHomeScreen(); System.out.println( selection + " is not valid. Please select a valid option."); break;
+		}
+	}
+
+	private static void showStatisticsOptions() throws IOException {
+		System.out.println(
+				"******************************************\n" +
+				"WorkLogManager - Statistics\n" +
+				"******************************************\n" +
+				"1...Average Completed Stories Per Sprint\n" +
+				"2...Average Task Duration\n"+
+				"3...Incomplete Tasks For Sprint\n"+
+				"4...Estimation Duration Ration\n" +
+				"5...Back\n");
+
+
+		BufferedReader reader =
+				new BufferedReader(new InputStreamReader(System.in));
+
+		String selection = reader.readLine();
+
+		switch (selection) {
+			case "1": Statistics.printAverageCompletedStoriesPerSprint(); showStatisticsOptions(); break;
+			case "2": Statistics.printAverageTaskDuration(); showStatisticsOptions(); break;
+			case "3": Statistics.printIncompleteTasksForSprint(); showStatisticsOptions(); break;
+			case "4": Statistics.printEstimationDurationRation(); showStatisticsOptions(); break;
+			case "5": showHomeScreen(); break;
+			default: System.out.println( selection + " is not valid. Please select a valid option."); showStatisticsOptions(); break;
+		}
+	}
+
+	private static void showEntitiesToAdd() throws IOException {
+		System.out.println(
+				"******************************************\n" +
+				"WorkLogManager - Add entities\n" +
+				"******************************************\n" +
+				"1...Add Sprint\n" +
+				"2...Add Backlog\n"+
+				"3...Add UserStory\n"+
+				"4...Add Task\n" +
+				"5...Add Issue\n" +
+				"6...Back\n");
+
+		BufferedReader reader =
+				new BufferedReader(new InputStreamReader(System.in));
+
+		String selection = reader.readLine();
+
+		switch (selection) {
+			case "1": showAddSprint(); showEntitiesToAdd(); break;
+			case "2": showAddBacklog(); showEntitiesToAdd(); break;
+			case "3": showAddUserStory(); showEntitiesToAdd(); break;
+			case "4": showAddTask(); showEntitiesToAdd(); break;
+			case "5": showAddIssue(); showEntitiesToAdd(); break;
+			case "6": showHomeScreen(); break;
+			default: System.out.println( selection + " is not valid. Please select a valid option."); showEntitiesToAdd(); break;
+		}
+	}
+
+	private static void showEntitiesToAttach() throws IOException {
+		System.out.println(
+				"******************************************\n" +
+				"WorkLogManager - Attach entities\n" +
+				"******************************************\n" +
+				"1...Attach UserStory to Sprint\n" +
+				"2...Attach UserStory to Backlog\n" +
+				"3...Attach Task to UserStory\n"+
+				"4...Attach Issue to UserStory\n"+
+				"5...Back\n");
+
+		BufferedReader reader =
+				new BufferedReader(new InputStreamReader(System.in));
+		String selection = reader.readLine();
+
+		switch (selection) {
+			case "1": showAttachStoryToSprint(); showEntitiesToAttach(); break;
+			case "2": showAttachStoryToBacklog(); showEntitiesToAttach(); break;
+			case "3": showAttachTaskToStory(); showEntitiesToAttach(); break;
+			case "4": showAttachIssueToStory(); showEntitiesToAttach(); break;
+			case "5": showHomeScreen(); break;
+			default: System.out.println( selection + " is not valid. Please select a valid option."); showEntitiesToAdd(); break;
+		}
+	}
+
+
+	private static void showAttachIssueToStory() throws IOException {
+		Issue issue = null;
+		UserStory story = null;
+		while (issue == null) {
+			long issueId = getNumber("Enter Issue ID:\n");
+			issue = (Issue) TaskDAO.find(issueId);
+		}
+		while (story == null) {
+			long storyId = getNumber("Enter User Story ID:\n");
+			story = UserStoryDAO.find(storyId);
+		}
+		story = UserStoryDAO.assignTaskToUserStory(story, issue);
+		issue = (Issue) TaskDAO.find(issue.getId());
+		System.out.println("Attached Story: \n" + story + "\nwith Issue:\n" + issue);
+	}
+
+	private static void showAttachTaskToStory() throws IOException {
+		Task task = null;
+		UserStory story = null;
+		while (task == null) {
+			long taskId = getNumber("Enter Task ID:\n");
+			task = (Issue) TaskDAO.find(taskId);
+		}
+		while (story == null) {
+			long storyId = getNumber("Enter User Story ID:\n");
+			story = UserStoryDAO.find(storyId);
+		}
+		story = UserStoryDAO.assignTaskToUserStory(story, task);
+		task = TaskDAO.find(task.getId());
+		System.out.println("Attached Story: \n" + story + "\nwith Task:\n" + task);
+	}
+
+	private static void showAttachStoryToBacklog() throws IOException {
+		UserStory story = null;
+		Backlog backlog = null;
+		while (story == null) {
+			long storyId = getNumber("Enter User Story ID:\n");
+			story = UserStoryDAO.find(storyId);
+		}
+		while (backlog == null) {
+			long backlogId = getNumber("Enter Backlog ID:\n");
+			backlog = BacklogDAO.find(backlogId);
+		}
+		backlog = BacklogDAO.attachUserStoryToBacklog(backlog, story);
+		story = UserStoryDAO.find(story.getId());
+		System.out.println("Attached Backlog: \n" + backlog + "\nwith Story:\n" + story);
+	}
+
+	private static void showAttachStoryToSprint() throws IOException {
+		UserStory story = null;
+		Sprint sprint = null;
+		while (story == null) {
+			long storyId = getNumber("Enter User Story ID:\n");
+			story = UserStoryDAO.find(storyId);
+		}
+		while (sprint == null) {
+			long sprintId = getNumber("Enter Sprint ID:\n");
+			sprint = SprintDAO.find(sprintId);
+		}
+		sprint = SprintDAO.assignUserStoryToSprint(sprint, story);
+		story = UserStoryDAO.find(story.getId());
+		System.out.println("Attached Sprint: \n" + sprint + "\nwith Story:\n" + story);
+	}
+
+	private static void showAddSprint() throws IOException {
+        System.out.println(
+                        "******************************************\n" +
+                        "WorkLogManager - Add Sprint\n" +
+                        "******************************************\n");
+
+        LocalDateTime start = getDate("Enter start date: dd.MM.YYYY\n");
+        LocalDateTime end = getDate("Enter end date: dd.MM.YYYY\n");
+
+        Sprint sprint = new Sprint(start, end);
+        sprint = SprintDAO.updateSprint(sprint);
+
+        System.out.println("New entity added:");
+        System.out.println(sprint);
+    }
+
+    private static LocalDateTime getDate(String imperativeText) throws IOException {
+        Date date = null;
+        while(date == null) {
+            System.out.println(imperativeText);
+            BufferedReader reader =
+                    new BufferedReader(new InputStreamReader(System.in));
+            String selection = reader.readLine();
+
+            try {
+                date = new SimpleDateFormat("dd.MM.YYYY").parse(selection);
+            } catch (ParseException e) {
+                System.out.println( selection + " is not valid. Enter date in format: dd.MM.YYYY\n");
+                getDate(imperativeText);
+            }
+        }
+
+        LocalDateTime result;
+        result = LocalDateTime.ofInstant(date.toInstant(), ZoneId.of("Europe/Berlin"));
+        return result;
+    }
+
+    private static String getText(String imperativeText) throws IOException {
+		System.out.println(imperativeText);
+		BufferedReader reader =
+				new BufferedReader(new InputStreamReader(System.in));
+		String selection = reader.readLine();
+		return selection;
+	}
+
+	private static long getNumber(String imperativeText) throws IOException {
+		System.out.println(imperativeText);
+		BufferedReader reader =
+				new BufferedReader(new InputStreamReader(System.in));
+		String selection = reader.readLine();
+
+		long number = 0;
+		try {
+			number = Long.parseLong(selection);
+		} catch (Exception e) {
+			System.out.println( selection + " is not valid.\n");
+			getNumber(imperativeText);
+		}
+		return number;
+	}
+
+    private static void showAddBacklog() throws IOException {
+		System.out.println(
+				"******************************************\n" +
+				"WorkLogManager - Add Backlog\n" +
+				"******************************************\n");
+
+		String vision = getText("Enter vision:\n");
+		String description = getText("Enter description:\n");
+
+		Backlog backlog = new Backlog(vision, description);
+		backlog = BacklogDAO.updateBacklog(backlog);
+
+		System.out.println("New entity added:");
+		System.out.println(backlog);
+    }
+
+    private static void showAddUserStory() throws IOException {
+		System.out.println(
+				"******************************************\n" +
+				"WorkLogManager - Add UserStory\n" +
+				"******************************************\n");
+
+		String title = getText("Enter title:\n");
+		String description = getText("Enter description:\n");
+		Long estimate = getNumber("Enter estimate (in milliseconds):\n");
+
+		UserStory story = new UserStory(title, description, estimate);
+		story = UserStoryDAO.updateUserStory(story);
+
+		System.out.println("New entity added:");
+		System.out.println(story);
+    }
+
+    private static void showAddTask() throws IOException {
+		System.out.println(
+				"******************************************\n" +
+				"WorkLogManager - Add Task\n" +
+				"******************************************\n");
+
+		String title = getText("Enter title:\n");
+		String description = getText("Enter description:\n");
+		Long estimate = getNumber("Enter estimate (in milliseconds):\n");
+
+		System.out.println("Set status:\n" +
+				"1...Open\n" +
+				"2...In progress\n"+
+				"3...Done\n");
+
+		BufferedReader reader =
+				new BufferedReader(new InputStreamReader(System.in));
+		String selection = reader.readLine();
+		Task.Status status;
+
+		switch (selection) {
+			case "1": status = Task.Status.open; break;
+			case "2": status = Task.Status.in_progress; break;
+			case "3": status = Task.Status.done; break;
+			default: status = Task.Status.open; break;
+		}
+
+		Task task = new Task(title, description, estimate, status);
+		task = TaskDAO.updateTask(task);
+
+		System.out.println("New entity added:");
+		System.out.println(task);
+    }
+
+    private static void showAddIssue() throws IOException {
+		System.out.println(
+				"******************************************\n" +
+						"WorkLogManager - Add Issue\n" +
+						"******************************************\n");
+
+		String title = getText("Enter title:\n");
+		String description = getText("Enter description:\n");
+		Long estimate = getNumber("Enter estimate (in milliseconds):\n");
+
+		System.out.println("Set status:\n" +
+				"1...Open\n" +
+				"2...In progress\n"+
+				"3...Done\n");
+
+		BufferedReader reader =
+				new BufferedReader(new InputStreamReader(System.in));
+		String selection = reader.readLine();
+		Task.Status status;
+		switch (selection) {
+			case "1": status = Task.Status.open; break;
+			case "2": status = Task.Status.in_progress; break;
+			case "3": status = Task.Status.done; break;
+			default: status = Task.Status.open; break;
+		}
+
+		LocalDateTime found = getDate("Enter found date: dd.MM.YYYY\n");
+		LocalDateTime fixed = getDate("Enter fixed date: dd.MM.YYYY\n");
+
+		System.out.println("Set severity:\n" +
+				"1...Low\n" +
+				"2...Medium\n"+
+				"3...High\n");
+
+		selection = getText("Set severity:\n");
+
+		Issue.Severity severity;
+		switch (selection) {
+			case "1": severity = Issue.Severity.low; break;
+			case "2": severity = Issue.Severity.medium; break;
+			case "3": severity = Issue.Severity.high; break;
+			default: severity = Issue.Severity.low; break;
+		}
+
+		Issue issue = new Issue(title, description, estimate, status, found, fixed, severity);
+		issue = (Issue) TaskDAO.updateTask(issue);
+
+		System.out.println("New entity added:");
+		System.out.println(issue);
+    }
+
+
+
+    private static void initialTests(){
+		try {
 			System.out.println("----- create schema -----");
 			JpaUtil.getEntityManagerFactory();
 
@@ -183,7 +442,7 @@ public class WorkLogManager {
 			empl3 = EmployeeDAO.updateEmployee(empl3);
 
 			System.out.println("------ list employees -------");
-            EmployeeDAO.listEmployees();
+			EmployeeDAO.listEmployees();
 
 			System.out.println("----- addLogbookEntries -----");
 			empl1 = addLogbookEntries(empl1, entry1, entry2);
@@ -289,86 +548,15 @@ public class WorkLogManager {
 			ProjectDAO.listMembersOfProject(p1);
 			ProjectDAO.listMembersOfProject(p2);
 
-			/* NOT WORKING
-			EmployeeDAO.listProjects(empl1);
-			EmployeeDAO.listProjects(empl2);
-			*/
+				/* NOT WORKING
+				EmployeeDAO.listProjects(empl1);
+				EmployeeDAO.listProjects(empl2);
+				*/
 
 			Statistics.printAverageTaskDuration();
 			Statistics.printEstimationDurationRation();
 			Statistics.printAverageCompletedStoriesPerSprint();
 			Statistics.printIncompleteTasksForSprint();
-
-/*
-			System.out.println("----- listLogbookEntriesOfEmployee -----");
-			listEntriesOfEmployee(empl1);
-
-			System.out.println("----- loadEmployeesWithEntries -----");
-			loadEmployeesWithEntries();
-
-			System.out.println("----- listEntriesOfEmployeeCQ -----");
-			listEntriesOfEmployeeCQ(empl1);
-
-
-			System.out.println("----- create Sprints -----");
-			Sprint sprint1 = new Sprint(
-					LocalDateTime.of(2018, 2, 1, 10, 15),
-					LocalDateTime.of(2018, 2, 14, 10, 15));
-
-			Sprint sprint2 = new Sprint(
-					LocalDateTime.of(2019, 3, 1, 10, 15),
-					LocalDateTime.of(2019, 3, 14, 10, 15));
-
-			p1 = assignSprintsToProject(p1, sprint1, sprint2);
-
-			System.out.println("----- Sprints of project -----");
-			listSprintsOfProject(p1);
-
-
-
-			System.out.println("----- User stories -----");
-			UserStory userStory1 = new UserStory("USTitle", "USDescription", 34000);
-			UserStory userStory2 = new UserStory("USTitle2", "USDescription2", 35000);
-			sprint1 = assignUserStoryToSprint(sprint1, userStory1, userStory2);
-			System.out.println("----- User stories of a sprint -----");
-			listUserStoriesOfSprint(sprint1);
-
-			Task task1 = new Task("tasktitle", "taskdesc", 70000, Task.Status.open);
-			Task task2 = new Task("tasktitle", "taskdesc", 70000, Task.Status.open);
-			Issue issue1 = new Issue("issuetitle", "issuedesc", 70000, Task.Status.open,
-					LocalDateTime.of(2018, 2, 1, 10, 15),
-					LocalDateTime.of(2018, 2, 14, 10, 15),
-					Issue.Severity.low);
-
-			System.out.println("----- addTaskToLogbookEntry -----");
-			empl1 = addLogbookEntries(empl1, entry1, entry2);
-			empl2 = addLogbookEntries(empl2, entry3);
-
-			TaskDAO.insertTask(task2);
-			TaskDAO.insertTask(issue1);
-
-			entry1 = addTaskToLogbookEntry(entry1, task1);
-
-			entry2 = addTaskToLogbookEntry(entry2, issue1);
-
-			printTaskOfLogbookEntry(entry1);
-			printTaskOfLogbookEntry(entry2);
-
-			System.out.println("----- attachUserStoryToBacklog -----");
-			BacklogDAO.attachUserStoryToBacklog(backlog1, userStory1, userStory2);
-			BacklogDAO.listUserStoriesOfBacklog(backlog1);
-
-			System.out.println("----- dettachUserStoryFromBacklog -----");
-			BacklogDAO.detachUserStoryFromBacklog(backlog1, userStory1);
-			BacklogDAO.listUserStoriesOfBacklog(backlog1);
-
-
-			System.out.println("----- deleteEmployee -----");
-			EmployeeDAO.deleteEmployee(empl3);
-
-			System.out.println("----- listEmployees -----");
-			listEmployees();
-*/
 		} finally {
 			//JpaUtil.closeEntityManagerFactory();
 		}

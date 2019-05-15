@@ -6,6 +6,8 @@ import swt6.util.JpaUtil;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import java.util.Collection;
+import java.util.HashSet;
 
 public class BacklogDAO extends BaseDAO {
 
@@ -79,5 +81,21 @@ public class BacklogDAO extends BaseDAO {
             JpaUtil.rollback();
             throw e;
         }
+    }
+
+    public static Collection<Backlog> getBacklogs() {
+        Collection<Backlog> backlogs = new HashSet<>();
+        try {
+            EntityManager em = JpaUtil.getTransactedEntityManager();
+            TypedQuery<Backlog> qry = em.createQuery(
+                    "from Backlog",
+                    Backlog.class);
+            qry.getResultList().forEach(entry -> backlogs.add(entry));
+            JpaUtil.commit();
+        } catch (Exception e){
+            JpaUtil.rollback();
+            throw e;
+        }
+        return backlogs;
     }
 }

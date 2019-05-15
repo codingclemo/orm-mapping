@@ -10,6 +10,8 @@ import swt6.util.JpaUtil;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import java.util.Collection;
+import java.util.HashSet;
 
 public class ProjectDAO extends BaseDAO {
 
@@ -119,5 +121,19 @@ public class ProjectDAO extends BaseDAO {
     }
 
 
-
+    public static Collection<Project> getProjects() {
+        Collection<Project> projects = new HashSet<>();
+        try {
+            EntityManager em = JpaUtil.getTransactedEntityManager();
+            TypedQuery<Project> qry = em.createQuery(
+                    "from Project",
+                    Project.class);
+            projects.addAll(qry.getResultList());
+            JpaUtil.commit();
+        } catch (Exception e){
+            JpaUtil.rollback();
+            throw e;
+        }
+        return projects;
+    }
 }

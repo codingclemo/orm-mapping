@@ -1,4 +1,4 @@
-package swt6.orm.stats;
+package swt6.stats;
 
 import swt6.orm.dao.LogbookEntryDAO;
 import swt6.orm.dao.SprintDAO;
@@ -63,14 +63,15 @@ public class Statistics {
             long sumTasks = tasks.size();
             long tasksCompleted = 0;
             for (Task task : tasks) {
-                if (task.getStatus().equals(Task.Status.done)) {
+                if (task.getStatus() == Task.Status.done) {
                     tasksCompleted++;
                 }
             }
             if (sumTasks != 0 && sumTasks == tasksCompleted) sumCompleted++;
             sumStories++;
         }
-        System.out.println("On average, " + sumCompleted / sumStories + " stories are completed per sprint (total sprints: " + sumCompleted +")");
+
+        System.out.println("On average," + sumCompleted + " of "+ sumStories + " stories are completed per sprint (total sprints: " + sumCompleted +")");
     }
 
     public static void printIncompleteTasksForSprint() {

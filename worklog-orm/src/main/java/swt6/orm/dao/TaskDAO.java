@@ -18,8 +18,8 @@ public class TaskDAO extends BaseDAO {
         insertEntity(task);
     }
 
-    public static void updateTask(Task task) {
-        saveEntity(task);
+    public static Task updateTask(Task task) {
+        return saveEntity(task);
     }
 
     public static void deleteTask(Task task) {

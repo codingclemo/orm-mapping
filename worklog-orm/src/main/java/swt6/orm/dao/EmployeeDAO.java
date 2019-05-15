@@ -12,6 +12,8 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 public class EmployeeDAO extends BaseDAO {
@@ -73,12 +75,14 @@ public class EmployeeDAO extends BaseDAO {
         try {
             EntityManager em = JpaUtil.getTransactedEntityManager();
             for (LogbookEntry entry : entries) {
+
                 //entry = em.merge(entry);
                 //Version 1: unidirectional
                 //empl.getLogbookEntries().add( entry );
                 //Version 2: bidirectional
-                empl.addLogbookEntry( entry );
                 entry.setEmployee(empl);
+//                entry = em.merge(entry);
+                empl.addLogbookEntry( entry );
             }
             empl = em.merge(empl);
             JpaUtil.commit();
@@ -198,5 +202,22 @@ public class EmployeeDAO extends BaseDAO {
             JpaUtil.rollback();
             throw e;
         }
+    }
+
+    public static Collection<Employee> getEmployees() {
+        EntityManager em = JpaUtil.getTransactedEntityManager();
+        Collection<Employee> employees = new HashSet<>();
+        try {
+            TypedQuery<Employee> qry = em.createQuery(
+                    "from Employee",
+                    Employee.class);
+            employees.addAll(qry.getResultList());
+
+            JpaUtil.commit();
+        } catch (Exception e){
+            JpaUtil.rollback();
+            throw e;
+        }
+        return employees;
     }
 }
